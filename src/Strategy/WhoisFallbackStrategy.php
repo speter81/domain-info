@@ -71,6 +71,14 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
         '/^névszerver\s*:\s*(.+)$/im',
     ];
 
+    /** @var list<string> */
+    private const STATUS_PATTERNS = [
+        '/^status\s*:\s*(.+)$/im',
+        '/^allapot\s*:\s*(.+)$/im',
+        '/^állapot\s*:\s*(.+)$/im',
+    ];
+
+
     private const NOT_FOUND_PHRASES = [
         'no match',
         'not found',
@@ -137,6 +145,7 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
             registrar:        $this->extractFirst($output, self::REGISTRAR_PATTERNS),
             nameservers:      $this->extractAll($output, self::NAMESERVER_PATTERNS),
             lastUpdated:      $this->extractDate($output, self::UPDATED_PATTERNS),
+            status:           $this->extractStatus($output, self::STATUS_PATTERNS),
         );
     }
 
@@ -195,4 +204,16 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
 
         return array_values(array_unique($results));
     }
+
+    /**
+     * @param  list<string> $patterns
+     * @return list<string>
+     */
+    private function extractStatus(string $output, array $patterns): array
+    {
+        $results = [];
+        $results[] = $this->extractFirst($output, $patterns);
+        return $results;
+    }
+
 }

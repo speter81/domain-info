@@ -15,6 +15,7 @@ final class DomainInfo
         public readonly ?string $registrar = null,
         public readonly array $nameservers = [],
         public readonly ?DateTimeImmutable $lastUpdated = null,
+        public readonly array $status = []
     ) {}
 
     /**
@@ -28,6 +29,7 @@ final class DomainInfo
      *     registrar:         string|null,
      *     nameservers:       list<string>,
      *     last_updated:      string|null,
+     *     status:            string|null,
      * }
      */
     public function toArray(): array
@@ -39,6 +41,7 @@ final class DomainInfo
             'registrar'         => $this->registrar,
             'nameservers'       => array_values($this->nameservers),
             'last_updated'      => $this->lastUpdated?->format('Y-m-d H:i:s'),
+            'status'            => $this->status,
         ];
     }
 }

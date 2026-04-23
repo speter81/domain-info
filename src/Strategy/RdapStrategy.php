@@ -75,6 +75,7 @@ final class RdapStrategy implements DomainStrategyInterface
         $events      = $this->parseEvents($data['events'] ?? []);
         $nameservers = $this->parseNameservers($data['nameservers'] ?? []);
         $registrar   = $this->parseRegistrar($data['entities'] ?? []);
+        $status      = $this->parseStatus($data['status'] ?? []);
 
         return new DomainInfo(
             domainName:       $data['ldhName'] ?? null,
@@ -83,6 +84,7 @@ final class RdapStrategy implements DomainStrategyInterface
             registrar:        $registrar,
             nameservers:      $nameservers,
             lastUpdated:      $events['last changed'] ?? $events['last update of rdap database'] ?? null,
+            status:           $status
         );
     }
 
@@ -173,6 +175,16 @@ final class RdapStrategy implements DomainStrategyInterface
         }
 
         return null;
+    }
+
+    private function parseStatus($statuses): array
+    {
+        $result = [];
+        foreach ($statuses as $status) {
+            $result[] = $status;
+        }
+
+        return $result;
     }
 
     /**

@@ -55,6 +55,11 @@ final class HuStrategy implements DomainStrategyInterface
         'nameserver', 'name server', 'nserver',
     ];
 
+    private const STATUS_LABELS = [
+        'Állapot','allapot', 'status',
+    ];
+
+
     public function __construct(
         private readonly HttpClientInterface $httpClient,
     ) {}
@@ -98,12 +103,13 @@ final class HuStrategy implements DomainStrategyInterface
         $pairs = $this->extractAllLabelValuePairs($xpath);
 
         return new DomainInfo(
-            domainName:           $this->findFirstString($pairs, self::DOMAIN_NAME_LABELS),
+            domainName:       $this->findFirstString($pairs, self::DOMAIN_NAME_LABELS),
             expirationDate:   $this->findDate($pairs, self::EXPIRY_LABELS),
             registrationDate: $this->findDate($pairs, self::CREATION_LABELS),
             registrar:        $this->findFirstString($pairs, self::REGISTRAR_LABELS),
             nameservers:      $this->collectNameservers($pairs),
             lastUpdated:      $this->findDate($pairs, self::UPDATED_LABELS),
+            status:           $this->collectStatus($pairs)
         );
     }
 
@@ -234,6 +240,16 @@ final class HuStrategy implements DomainStrategyInterface
         }
 
         return array_values(array_unique($result));
+    }
+    /**
+     * @param array<string, list<string>> $pairs
+     * @return list<string>
+     */
+    private function collectStatus(array $pairs): array
+    {
+        $results = [];
+        $results[] = $this->findFirstString($pairs, self::STATUS_LABELS);
+        return $results;
     }
 
     private function parseDate(string $raw): ?DateTimeImmutable
