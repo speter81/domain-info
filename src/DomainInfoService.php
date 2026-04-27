@@ -69,9 +69,10 @@ final class DomainInfoService
      *
      * @throws DomainInfoException when all strategies fail or the domain is invalid
      */
-    public function lookup(string $domain): array
+    public function lookup(string $rawDomain): array
     {
-        $domain = strtolower(trim($domain));
+        $domain = strtolower(trim($rawDomain));
+        $domain = $this->toResolvableDomain($domain);
         $this->validateDomain($domain);
 
         $tld = $this->extractTld($domain);
@@ -106,7 +107,6 @@ final class DomainInfoService
      */
     private function validateDomain(string $domain): void
     {
-        // RFC-1123 compliant: labels separated by dots, valid characters
         if (
             $domain === ''
             || !preg_match(
@@ -124,6 +124,30 @@ final class DomainInfoService
     {
         $parts = explode('.', $domain);
         return end($parts);
+    }
+
+    private function toResolvableDomain(string $domain): string
+    {
+        if ( ! $this->needsPunycode($domain)) {
+            return $domain;
+        }
+
+        $result = idn_to_ascii($domain, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
+
+        if ($result === false) {
+            throw new \InvalidArgumentException("Invalid domain: {$domain}");
+        }
+
+        return $result;
+    }
+
+    private function needsPunycode(string $domain): bool
+    {
+        if (str_contains($domain, 'xn--')) {
+            return false;
+        }
+
+        return (bool) preg_match('/[^\x00-\x7F]/', $domain);
     }
 
 }

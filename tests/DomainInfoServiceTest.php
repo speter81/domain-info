@@ -328,6 +328,9 @@ final class DomainInfoServiceTest extends TestCase
             'uppercase input'    => ['EXAMPLE.COM'],
             'numeric label'      => ['123.example.com'],
             'hyphen in label'    => ['my-domain.com'],
+            'puny code required' => ['münchen.de'],
+            'more idna domains'  => ['fußball.de'],
+            'puny-coded input'   => ['xn--mnchen-3ya.de']
         ];
     }
 

@@ -33,7 +33,8 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
 
     /** @var list<string> */
     private const DOMAIN_NAME_PATTERNS = [
-        '/^Domain Name:\s*(.+$)/im'
+        '/^Domain Name:\s*(.+$)/im',
+        '/^Domain:\s*(.+$)/im',
     ];
 
     /** @var list<string> */
@@ -139,7 +140,7 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
     private function parseWhoisOutput(string $output): DomainInfo
     {
         return new DomainInfo(
-            domainName:       $this->extractFirst($output, self::DOMAIN_NAME_PATTERNS),
+            domainName:       $this->extractDomain($output, self::DOMAIN_NAME_PATTERNS),
             expirationDate:   $this->extractDate($output, self::EXPIRY_PATTERNS),
             registrationDate: $this->extractDate($output, self::CREATION_PATTERNS),
             registrar:        $this->extractFirst($output, self::REGISTRAR_PATTERNS),
@@ -215,5 +216,22 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
         $results[] = $this->extractFirst($output, $patterns);
         return $results;
     }
+
+    /**
+     * @param  list<string> $patterns
+     * @return string
+     */
+    private function extractDomain(string $output, array $patterns): string
+    {
+        $results = $this->extractAll($output, $patterns);
+        $key = 0;
+        // When the pattern is domain it matches a field which only contains the TLD
+        // so we go for the 2nd item, which is more likely the domain name
+        if( ! empty($results[1]) && strlen($results[1]) > strlen($results[0])) {
+            $key = 1;
+        }
+        return $results[$key] ?? '';
+    }
+
 
 }
