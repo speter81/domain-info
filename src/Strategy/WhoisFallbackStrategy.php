@@ -87,6 +87,7 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
         'object does not exist',
         'no data found',
         'domain not found',
+        'nincs talalat',
     ];
 
     public function __construct(

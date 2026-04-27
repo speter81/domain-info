@@ -11,6 +11,7 @@ use SPeter81\DomainInfo\Exception\DomainInfoException;
 use SPeter81\DomainInfo\Exception\StrategyFailedException;
 use SPeter81\DomainInfo\Http\CurlHttpClient;
 use SPeter81\DomainInfo\Resolver\StrategyResolver;
+use SPeter81\DomainInfo\Shell\DummyShellExecutor;
 use SPeter81\DomainInfo\Shell\SystemShellExecutor;
 use SPeter81\DomainInfo\Strategy\HuStrategy;
 use SPeter81\DomainInfo\Strategy\RdapStrategy;
@@ -44,7 +45,7 @@ final class DomainInfoService
         ?ShellExecutorInterface $shellExecutor = null,
     ): self {
         $http  = $httpClient    ?? new CurlHttpClient();
-        $shell = $shellExecutor ?? new SystemShellExecutor();
+        $shell = $shellExecutor ?? function_exists('shell_exec') ? new SystemShellExecutor() : new DummyShellExecutor();
 
         $resolver = new StrategyResolver();
         $resolver->register(new HuStrategy($http));
@@ -72,7 +73,6 @@ final class DomainInfoService
     public function lookup(string $rawDomain): array
     {
         $domain = strtolower(trim($rawDomain));
-        $domain = $this->toResolvableDomain($domain);
         $this->validateDomain($domain);
 
         $tld = $this->extractTld($domain);
@@ -110,7 +110,7 @@ final class DomainInfoService
         if (
             $domain === ''
             || !preg_match(
-                '/^(?:[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/',
+                '/^(?:[\p{L}\p{N}](?:[\p{L}\p{N}\-]{0,61}[\p{L}\p{N}])?\.)+[\p{L}\p{N}]{2,}$/u',
                 $domain,
             )
         ) {
