@@ -8,6 +8,7 @@ use SPeter81\DomainInfo\Contract\DomainStrategyInterface;
 use SPeter81\DomainInfo\Contract\HttpClientInterface;
 use SPeter81\DomainInfo\Contract\ShellExecutorInterface;
 use SPeter81\DomainInfo\Exception\DomainInfoException;
+use SPeter81\DomainInfo\Exception\HttpException;
 use SPeter81\DomainInfo\Exception\StrategyFailedException;
 use SPeter81\DomainInfo\Http\CurlHttpClient;
 use SPeter81\DomainInfo\Resolver\StrategyResolver;
@@ -85,8 +86,10 @@ final class DomainInfoService
         } catch (StrategyFailedException $e) {
             $primaryException = $e;
             // Fall through to whois fallback
+        } catch (HttpException $e) {
+            throw $e;
         } catch (DomainInfoException) {
-            // No strategy registered for this TLD
+            // No strategy registered for this TLD — fall through to whois fallback
         }
 
         try {

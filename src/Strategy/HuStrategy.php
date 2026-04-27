@@ -247,9 +247,8 @@ final class HuStrategy implements DomainStrategyInterface
      */
     private function collectStatus(array $pairs): array
     {
-        $results = [];
-        $results[] = $this->findFirstString($pairs, self::STATUS_LABELS);
-        return $results;
+        $value = $this->findFirstString($pairs, self::STATUS_LABELS);
+        return $value !== null ? [$value] : [];
     }
 
     private function parseDate(string $raw): ?DateTimeImmutable

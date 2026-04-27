@@ -102,7 +102,7 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
     public function query(string $domain): DomainInfo
     {
         $output = $this->runWhois($domain);
-        return $this->parseWhoisOutput($output);
+        return $this->parseWhoisOutput($output, $domain);
     }
 
     private function runWhois(string $domain): string
@@ -138,10 +138,10 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
         }
     }
 
-    private function parseWhoisOutput(string $output): DomainInfo
+    private function parseWhoisOutput(string $output, string $domain): DomainInfo
     {
         return new DomainInfo(
-            domainName:       $this->extractDomain($output, self::DOMAIN_NAME_PATTERNS),
+            domainName:       $this->extractDomain($output, self::DOMAIN_NAME_PATTERNS, $domain),
             expirationDate:   $this->extractDate($output, self::EXPIRY_PATTERNS),
             registrationDate: $this->extractDate($output, self::CREATION_PATTERNS),
             registrar:        $this->extractFirst($output, self::REGISTRAR_PATTERNS),
@@ -213,25 +213,27 @@ final class WhoisFallbackStrategy implements DomainStrategyInterface
      */
     private function extractStatus(string $output, array $patterns): array
     {
-        $results = [];
-        $results[] = $this->extractFirst($output, $patterns);
-        return $results;
+        $value = $this->extractFirst($output, $patterns);
+        return $value !== null ? [$value] : [];
     }
 
     /**
      * @param  list<string> $patterns
-     * @return string
      */
-    private function extractDomain(string $output, array $patterns): string
+    private function extractDomain(string $output, array $patterns, string $domain): string
     {
-        $results = $this->extractAll($output, $patterns);
-        $key = 0;
-        // When the pattern is domain it matches a field which only contains the TLD
-        // so we go for the 2nd item, which is more likely the domain name
-        if( ! empty($results[1]) && strlen($results[1]) > strlen($results[0])) {
-            $key = 1;
+        $results = $this->extractAll($output, $patterns);  // already lowercased
+        $domain  = strtolower($domain);
+
+        foreach ($results as $r) {
+            if ($r === $domain) {
+                return $r;
+            }
         }
-        return $results[$key] ?? '';
+
+        // Fallback: longest result is more likely the FQDN than a bare TLD
+        usort($results, fn($a, $b) => strlen($b) - strlen($a));
+        return $results[0] ?? '';
     }
 
 

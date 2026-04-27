@@ -29,7 +29,7 @@ final class DomainInfo
      *     registrar:         string|null,
      *     nameservers:       list<string>,
      *     last_updated:      string|null,
-     *     status:            string|null,
+     *     status:            list<string>,
      * }
      */
     public function toArray(): array
